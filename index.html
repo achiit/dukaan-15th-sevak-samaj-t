@@ -1,0 +1,161 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>15th Sevak Samaj Cricket Tournament</title>
+<style>
+body{margin:0;background:#071426;color:white;font-family:Arial}
+header{background:#08764e;padding:25px;text-align:center}
+nav{background:#102b42;padding:15px;text-align:center}
+button{padding:11px 17px;margin:5px;border:0;border-radius:7px;background:#16c784;color:#062719;font-weight:bold;cursor:pointer}
+.card{background:#142b44;margin:15px;padding:20px;border-radius:12px}
+input,select{padding:12px;margin:7px 0;width:95%;border-radius:6px;border:1px solid #aaa}
+.hidden{display:none}
+h2{color:#19d895}
+</style>
+</head>
+<body>
+
+<header>
+<h1>🏏 15th SEVAK SAMAJ TOURNAMENT</h1>
+<p>Nava Gaon Khel Maidan, Samliya</p>
+</header>
+
+<nav>
+<button onclick="show('home')">Home</button>
+<button onclick="show('teams')">Teams</button>
+<button onclick="show('scores')">Live Score</button>
+<button onclick="login()">Admin Login</button>
+</nav>
+
+<section id="home" class="card">
+<h2>Welcome to Cricket Tournament</h2>
+<p>30 Teams | 450 Players | Live Cricket Updates</p>
+<p>Follow teams, squads and match scores.</p>
+</section>
+
+<section id="teams" class="card hidden">
+<h2>Teams & Players</h2>
+<div id="teamList"></div>
+</section>
+
+<section id="scores" class="card hidden">
+<h2>Live Scores</h2>
+<div id="scoresList"></div>
+</section>
+
+<section id="admin" class="card hidden">
+<h2>Admin Dashboard</h2>
+
+<h3>Add Team</h3>
+<input id="teamName" placeholder="Team Name">
+<button onclick="addTeam()">Add Team</button>
+
+<h3>Add Player</h3>
+<select id="playerTeam"></select>
+<input id="playerName" placeholder="Player Name">
+<input id="jersey" placeholder="Jersey Number">
+<select id="role">
+<option>Batsman</option>
+<option>Bowler</option>
+<option>All-rounder</option>
+<option>Wicketkeeper</option>
+</select>
+<button onclick="addPlayer()">Add Player</button>
+
+<h3>Live Score Update</h3>
+<select id="scoreTeam"></select>
+<input id="runs" type="number" placeholder="Runs">
+<input id="wickets" type="number" placeholder="Wickets">
+<input id="overs" placeholder="Overs">
+<button onclick="updateScore()">Update Score</button>
+
+<button onclick="logout()">Logout</button>
+</section>
+
+<script>
+let teams=JSON.parse(localStorage.getItem("sevakTeams")||"[]");
+let scores=JSON.parse(localStorage.getItem("sevakScores")||"[]");
+let admin=false;
+
+function save(){
+ localStorage.setItem("sevakTeams",JSON.stringify(teams));
+ localStorage.setItem("sevakScores",JSON.stringify(scores));
+ render();
+}
+
+function show(id){
+ document.querySelectorAll("body>section").forEach(s=>s.classList.add("hidden"));
+ document.getElementById(id).classList.remove("hidden");
+}
+
+function login(){
+ let u=prompt("Admin ID");
+ let p=prompt("Admin Password");
+ if(u==="PRADHUMANSEVAK" && p==="PRADHUMANSEVAK"){
+ admin=true;
+ show("admin");
+ }else alert("Wrong Login Details");
+}
+
+function logout(){admin=false;show("home");}
+
+function addTeam(){
+ if(!admin)return;
+ let n=document.getElementById("teamName").value.trim();
+ if(!n)return alert("Enter team name");
+ if(teams.length>=30)return alert("Maximum 30 teams");
+ teams.push({name:n,players:[]});
+ document.getElementById("teamName").value="";
+ save();
+}
+
+function addPlayer(){
+ if(!admin)return;
+ let i=+document.getElementById("playerTeam").value;
+ if(!teams[i])return alert("Add a team first");
+ if(teams[i].players.length>=15)return alert("Maximum 15 players");
+ teams[i].players.push({
+ name:document.getElementById("playerName").value,
+ jersey:document.getElementById("jersey").value,
+ role:document.getElementById("role").value
+ });
+ save();
+}
+
+function updateScore(){
+ if(!admin)return;
+ let i=+document.getElementById("scoreTeam").value;
+ if(!teams[i])return;
+ scores[i]={
+ team:teams[i].name,
+ runs:document.getElementById("runs").value,
+ wickets:document.getElementById("wickets").value,
+ overs:document.getElementById("overs").value
+ };
+ save();
+}
+
+function render(){
+ document.getElementById("teamList").innerHTML=teams.map((t,i)=>
+ `<div class="card"><h3>${t.name}</h3>
+ <p>${t.players.length}/15 Players</p>
+ ${t.players.map(p=>`<p>${p.name} | #${p.jersey} | ${p.role}</p>`).join("")}</div>`
+ ).join("");
+
+ document.getElementById("scoresList").innerHTML=scores.filter(Boolean).map(s=>
+ `<div class="card"><h3>${s.team}</h3>
+ <h2>${s.runs}/${s.wickets}</h2>
+ <p>Overs: ${s.overs}</p></div>`
+ ).join("");
+
+ let options=teams.map((t,i)=>`<option value="${i}">${t.name}</option>`).join("");
+ document.getElementById("playerTeam").innerHTML=options;
+ document.getElementById("scoreTeam").innerHTML=options;
+}
+render();
+</script>
+</body>
+</html>
